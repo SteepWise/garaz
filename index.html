@@ -247,6 +247,7 @@
     <div class="settings-card">
         <h2>Nebezpečná zóna</h2>
         <div class="settings-actions">
+            <button class="btn btn-red" onclick="clearAllImages()">🖼 Smazat všechny fotky</button>
             <button class="btn btn-red" onclick="resetAllData()">🗑 Smazat vše a začít znovu</button>
         </div>
     </div>
@@ -777,6 +778,16 @@
         };
         reader.readAsText(file);
         event.target.value = '';
+    }
+
+    function clearAllImages() {
+        const count = shelfData.filter(b => b.image).length;
+        if (count === 0) { alert('Žádné fotky nejsou uloženy.'); return; }
+        if (!confirm(`Smazat fotky ze všech ${count} beden? Ostatní data zůstanou.`)) return;
+        shelfData.forEach(b => { b.image = ''; });
+        save();
+        renderShelf();
+        alert('Všechny fotky byly smazány.');
     }
 
     function resetAllData() {
