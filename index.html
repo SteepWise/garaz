@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digitální Regál</title>
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#8B5A2B">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Garáž">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
+    <!-- QR knihovny -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+
+    <style>
+        :root { --bg-color: #f4f6f9; --shelf-color: #8B5A2B; }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0; padding: 20px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        h1 { color: #333; margin-bottom: 10px; }
+
+        /* Záložky */
+        .tabs {
+            display: flex; gap: 0; margin-bottom: 25px;
+            border-bottom: 2px solid #ddd;
+            width: 100%; max-width: 1200px; align-items: flex-end;
+        }
+        .tab-btn {
+            padding: 10px 24px; border: none; background: none;
+            font-size: 1em; font-weight: bold; cursor: pointer; color: #999;
+            border-bottom: 3px solid transparent; margin-bottom: -2px;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        .tab-btn.active { color: #333; border-bottom-color: #333; }
+        .tab-btn:hover { color: #555; }
+        .tab-spacer { flex: 1; }
+        .scan-btn {
+            padding: 8px 16px; margin-bottom: 4px;
+            background: #17a2b8; color: white; border: none;
+            border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.95em;
+        }
+        .scan-btn:hover { background: #138496; }
+
+        /* Obsah záložek */
+        .tab-content { display: none; width: 100%; max-width: 1200px; }
+        .tab-content.active { display: block; }
+
+        /* Regál */
+        .shelf-container {
+            background-color: var(--shelf-color);
+            padding: 15px; border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            display: grid; gap: 15px; width: 100%;
+        }
+        .box {
+            background-color: #fff; border: 4px solid #ccc;
+            border-radius: 6px; min-height: 180px; padding: 10px;
+            display: flex; flex-direction: column; justify-content: space-between;
+            cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; position: relative;
+        }
+        .box:hover { transform: scale(1.02); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .box-title {
+            font-weight: bold; font-size: 1.1em;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            padding-bottom: 5px; margin-bottom: 5px;
+            text-align: center; word-break: break-word;
+        }
+        .box-content {
+            font-size: 0.9em; color: #444; flex-grow: 1;
+            white-space: pre-line; overflow: hidden; text-overflow: ellipsis;
+        }
+        .box-img { width: 100%; height: 60px; object-fit: cover; border-radius: 4px; margin-top: 5px; display: none; }
+        .qr-icon-btn {
+            position: absolute; bottom: 6px; right: 6px;
+            background: rgba(0,0,0,0.12); border: none; border-radius: 4px;
+            cursor: pointer; font-size: 1em; padding: 2px 5px; line-height: 1.4;
+            opacity: 0; transition: opacity 0.15s;
+        }
+        .box:hover .qr-icon-btn { opacity: 1; }
+
+        /* Nastavení */
+        .settings-card {
+            background: white; border-radius: 10px; padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px;
+        }
+        .settings-card h2 {
+            margin-top: 0; font-size: 1.1em; color: #333;
+            border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px;
+        }
+        .grid-inputs { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .grid-inputs label { font-weight: bold; }
+        .grid-inputs input[type=number] {
+            width: 70px; padding: 8px; border: 1px solid #ccc;
+            border-radius: 4px; font-size: 1em; text-align: center;
+        }
+        .grid-sep { font-size: 1.4em; color: #999; }
+        .grid-preview { font-size: 0.9em; color: #666; margin-top: 8px; }
+        .settings-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 5px; }
+        .warning-text { font-size: 0.85em; color: #c0392b; margin-top: 8px; }
+
+        /* Modály */
+        .modal {
+            display: none; position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-content {
+            background: white; padding: 25px; border-radius: 10px;
+            width: 90%; max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal h2 { margin-top: 0; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;
+        }
+        .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+        .btn { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.95em; }
+        .btn-save { background: #28a745; color: white; }
+        .btn-close { background: #6c757d; color: white; }
+        .btn-blue { background: #007bff; color: white; }
+        .btn-red { background: #dc3545; color: white; }
+        .btn-teal { background: #17a2b8; color: white; }
+
+        #preview-img { max-width: 100%; height: 150px; object-fit: contain; margin-top: 10px; display: none; }
+
+        /* QR modál */
+        #qr-container { margin: 15px auto; display: inline-block; }
+        #qr-url { font-size: 0.78em; color: #aaa; word-break: break-all; margin: 5px 0 15px; }
+
+        /* Scanner */
+        #scan-video { width: 100%; border-radius: 8px; display: block; background: #000; }
+        #scan-status { text-align: center; color: #555; margin: 10px 0 0; font-size: 0.95em; }
+        .scan-frame { position: relative; border-radius: 8px; overflow: hidden; }
+        .scan-crosshair {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 180px; height: 180px;
+            border: 3px solid #28a745; border-radius: 10px;
+            pointer-events: none;
+            box-shadow: 0 0 0 2000px rgba(0,0,0,0.35);
+        }
+    </style>
+</head>
+<body>
+
+<h1 id="page-title">Digitální Regál</h1>
+
+<div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('shelf', this)">📦 Regál</button>
+    <button class="tab-btn" onclick="switchTab('settings', this)">⚙️ Nastavení</button>
+    <div class="tab-spacer"></div>
+    <button class="scan-btn" onclick="startScanner()">📷 Skenovat QR</button>
+</div>
+
+<!-- Záložka: Regál -->
+<div class="tab-content active" id="tab-shelf">
+    <div class="shelf-container" id="shelf"></div>
+</div>
+
+<!-- Záložka: Nastavení -->
+<div class="tab-content" id="tab-settings">
+    <div class="settings-card">
+        <h2>Rozměry regálu</h2>
+        <div class="grid-inputs">
+            <label>Sloupce:</label>
+            <input type="number" id="input-cols" min="1" max="10" value="5" oninput="updateGridPreview()">
+            <span class="grid-sep">×</span>
+            <label>Řady:</label>
+            <input type="number" id="input-rows" min="1" max="10" value="3" oninput="updateGridPreview()">
+            <button class="btn btn-save" onclick="applyGridSize()">Použít</button>
+        </div>
+        <div class="grid-preview" id="grid-preview"></div>
+        <div class="warning-text">Při zmenšení regálu budou bedny navíc odstraněny včetně jejich obsahu.</div>
+    </div>
+    <div class="settings-card">
+        <h2>Záloha dat</h2>
+        <p style="color:#555; margin-top:0;">Data jsou uložena pouze v tomto prohlížeči. Exportujte zálohu pravidelně nebo před vymazáním dat prohlížeče.</p>
+        <div class="settings-actions">
+            <button class="btn btn-save" onclick="exportData()">⬇ Exportovat zálohu</button>
+            <label class="btn btn-blue" style="cursor:pointer;">
+                ⬆ Importovat zálohu
+                <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+            </label>
+        </div>
+    </div>
+    <div class="settings-card">
+        <h2>Nebezpečná zóna</h2>
+        <div class="settings-actions">
+            <button class="btn btn-red" onclick="resetAllData()">🗑 Smazat vše a začít znovu</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modál: Editace bedny -->
+<div class="modal" id="editModal">
+    <div class="modal-content">
+        <h2 id="modal-box-title">Upravit bednu</h2>
+        <div class="form-group">
+            <label for="input-title">Název/Označení bedny:</label>
+            <input type="text" id="input-title" placeholder="Např. Šrouby M6">
+        </div>
+        <div class="form-group">
+            <label for="input-content">Obsah (seznam věcí):</label>
+            <textarea id="input-content" rows="4" placeholder="Vložte věci (každou na nový řádek)"></textarea>
+        </div>
+        <div class="form-group">
+            <label for="input-color">Barva bedny:</label>
+            <select id="input-color">
+                <option value="#ffffff">Bílá (Klasická)</option>
+                <option value="#ffcccc">Červená</option>
+                <option value="#ccffcc">Zelená</option>
+                <option value="#ccccff">Modrá</option>
+                <option value="#ffffcc">Žlutá</option>
+                <option value="#ffccff">Růžová</option>
+                <option value="#e6e6e6">Šedá</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="input-file">Fotografie bedny/obsahu:</label>
+            <input type="file" id="input-file" accept="image/*">
+            <img id="preview-img" src="" alt="Náhled">
+        </div>
+        <div class="modal-buttons">
+            <button class="btn btn-teal" onclick="showQRForCurrent()">📱 QR kód</button>
+            <button class="btn btn-close" onclick="closeModal()">Zrušit</button>
+            <button class="btn btn-save" onclick="saveBoxData()">Uložit</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modál: QR kód -->
+<div class="modal" id="qrModal">
+    <div class="modal-content" style="text-align:center;">
+        <h2 id="qr-modal-title">QR kód bedny</h2>
+        <div id="qr-container"></div>
+        <p id="qr-url"></p>
+        <div class="modal-buttons" style="justify-content:center;">
+            <button class="btn btn-save" onclick="downloadQR()">⬇ Stáhnout PNG</button>
+            <button class="btn btn-close" onclick="closeQrModal()">Zavřít</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modál: QR Scanner -->
+<div class="modal" id="scanModal">
+    <div class="modal-content">
+        <h2>Skenovat QR kód</h2>
+        <div class="scan-frame">
+            <video id="scan-video" autoplay playsinline muted></video>
+            <div class="scan-crosshair"></div>
+        </div>
+        <canvas id="scan-canvas" style="display:none;"></canvas>
+        <p id="scan-status">Mířte kamerou na QR kód bedny...</p>
+        <div class="modal-buttons">
+            <button class="btn btn-close" onclick="stopScanner()">Zavřít</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ── Stav ──────────────────────────────────────────────────────────────────
+    let currentBoxIndex = null;
+    let gridConfig = JSON.parse(localStorage.getItem('gridConfig')) || { cols: 5, rows: 3 };
+    let totalBoxes = gridConfig.cols * gridConfig.rows;
+    let shelfData = JSON.parse(localStorage.getItem('shelfData')) || makeEmptyShelf(totalBoxes);
+    shelfData = resizeShelfData(shelfData, totalBoxes);
+
+    const shelfEl = document.getElementById('shelf');
+
+    // ── Pomocné ───────────────────────────────────────────────────────────────
+    function makeEmptyShelf(count) {
+        return Array.from({ length: count }, (_, i) => ({
+            id: i, title: `Bedna ${i + 1}`, content: '', color: '#ffffff', image: ''
+        }));
+    }
+
+    function resizeShelfData(data, newCount) {
+        if (data.length === newCount) return data;
+        if (data.length > newCount) return data.slice(0, newCount);
+        return [...data, ...Array.from({ length: newCount - data.length }, (_, i) => ({
+            id: data.length + i, title: `Bedna ${data.length + i + 1}`,
+            content: '', color: '#ffffff', image: ''
+        }))];
+    }
+
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+
+    function adjustColorBrightness(hex, percent) {
+        let R = Math.min(255, parseInt(parseInt(hex.substring(1,3),16) * (100+percent) / 100));
+        let G = Math.min(255, parseInt(parseInt(hex.substring(3,5),16) * (100+percent) / 100));
+        let B = Math.min(255, parseInt(parseInt(hex.substring(5,7),16) * (100+percent) / 100));
+        return '#' + R.toString(16).padStart(2,'0') + G.toString(16).padStart(2,'0') + B.toString(16).padStart(2,'0');
+    }
+
+    function save() {
+        localStorage.setItem('shelfData', JSON.stringify(shelfData));
+        localStorage.setItem('gridConfig', JSON.stringify(gridConfig));
+    }
+
+    // ── Regál ─────────────────────────────────────────────────────────────────
+    function renderShelf() {
+        shelfEl.style.gridTemplateColumns = `repeat(${gridConfig.cols}, 1fr)`;
+        shelfEl.style.gridTemplateRows = `repeat(${gridConfig.rows}, 1fr)`;
+        shelfEl.innerHTML = '';
+        shelfData.forEach((box, index) => {
+            const boxEl = document.createElement('div');
+            boxEl.className = 'box';
+            boxEl.style.backgroundColor = box.color;
+            boxEl.style.borderColor = adjustColorBrightness(box.color, -20);
+            boxEl.style.color = '#333';
+            boxEl.setAttribute('onclick', `openModal(${index})`);
+            boxEl.innerHTML = `
+                <div class="box-title">${escapeHtml(box.title)}</div>
+                <div class="box-content">${box.content ? escapeHtml(box.content) : '<i>Prázdná bedna</i>'}</div>
+                <img class="box-img" src="${box.image || ''}" style="display:${box.image ? 'block' : 'none'}">
+                <button class="qr-icon-btn" onclick="event.stopPropagation(); showQR(${index})" title="Zobrazit QR kód">📱</button>
+            `;
+            shelfEl.appendChild(boxEl);
+        });
+        document.getElementById('page-title').textContent = `Digitální Regál (${gridConfig.cols}×${gridConfig.rows})`;
+    }
+
+    // ── Záložky ───────────────────────────────────────────────────────────────
+    function switchTab(name, btn) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById('tab-' + name).classList.add('active');
+        if (btn) btn.classList.add('active');
+        if (name === 'settings') {
+            document.getElementById('input-cols').value = gridConfig.cols;
+            document.getElementById('input-rows').value = gridConfig.rows;
+            updateGridPreview();
+        }
+    }
+
+    function updateGridPreview() {
+        const cols = parseInt(document.getElementById('input-cols').value) || 0;
+        const rows = parseInt(document.getElementById('input-rows').value) || 0;
+        document.getElementById('grid-preview').textContent =
+            (cols > 0 && rows > 0) ? `→ ${cols} × ${rows} = ${cols * rows} bedny` : '';
+    }
+
+    function applyGridSize() {
+        const cols = Math.max(1, Math.min(10, parseInt(document.getElementById('input-cols').value) || 1));
+        const rows = Math.max(1, Math.min(10, parseInt(document.getElementById('input-rows').value) || 1));
+        const newTotal = cols * rows;
+        if (newTotal < totalBoxes) {
+            if (!confirm(`Zmenšením regálu bude odstraněno posledních ${totalBoxes - newTotal} beden. Pokračovat?`)) return;
+        }
+        gridConfig = { cols, rows };
+        totalBoxes = newTotal;
+        shelfData = resizeShelfData(shelfData, totalBoxes);
+        save();
+        renderShelf();
+        updateGridPreview();
+        alert(`Regál nastaven na ${cols}×${rows}.`);
+    }
+
+    // ── Editace bedny ─────────────────────────────────────────────────────────
+    function openModal(index) {
+        currentBoxIndex = index;
+        const box = shelfData[index];
+        document.getElementById('modal-box-title').innerText = `Upravit bednu ${index + 1}`;
+        document.getElementById('input-title').value = box.title;
+        document.getElementById('input-content').value = box.content;
+        document.getElementById('input-color').value = box.color;
+        const prev = document.getElementById('preview-img');
+        prev.src = box.image || '';
+        prev.style.display = box.image ? 'block' : 'none';
+        document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('editModal').style.display = 'none';
+        document.getElementById('input-file').value = '';
+    }
+
+    function saveBoxData() {
+        const box = shelfData[currentBoxIndex];
+        box.title = document.getElementById('input-title').value || `Bedna ${currentBoxIndex + 1}`;
+        box.content = document.getElementById('input-content').value;
+        box.color = document.getElementById('input-color').value;
+        save();
+        renderShelf();
+        closeModal();
+    }
+
+    document.getElementById('input-file').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            shelfData[currentBoxIndex].image = ev.target.result;
+            const prev = document.getElementById('preview-img');
+            prev.src = ev.target.result;
+            prev.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // ── QR generování ─────────────────────────────────────────────────────────
+    let qrInstance = null;
+
+    function showQR(index) {
+        const box = shelfData[index];
+        const url = `${location.origin}/#box-${index}`;
+        document.getElementById('qr-modal-title').textContent = `QR kód — ${box.title}`;
+        document.getElementById('qr-url').textContent = url;
+        const container = document.getElementById('qr-container');
+        container.innerHTML = '';
+        qrInstance = new QRCode(container, {
+            text: url, width: 256, height: 256,
+            colorDark: '#333333', colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.H
+        });
+        document.getElementById('qrModal').style.display = 'flex';
+    }
+
+    function showQRForCurrent() {
+        if (currentBoxIndex === null) return;
+        closeModal();
+        showQR(currentBoxIndex);
+    }
+
+    function closeQrModal() {
+        document.getElementById('qrModal').style.display = 'none';
+        document.getElementById('qr-container').innerHTML = '';
+        qrInstance = null;
+    }
+
+    function downloadQR() {
+        const canvas = document.querySelector('#qr-container canvas');
+        if (!canvas) return;
+        const box = shelfData[currentBoxIndex] || { title: 'bedna' };
+        const a = document.createElement('a');
+        a.download = `qr-${box.title.replace(/[^a-z0-9]/gi, '-')}.png`;
+        a.href = canvas.toDataURL('image/png');
+        a.click();
+    }
+
+    // ── QR skenování ──────────────────────────────────────────────────────────
+    let scanStream = null;
+    let scanInterval = null;
+
+    async function startScanner() {
+        document.getElementById('scanModal').style.display = 'flex';
+        document.getElementById('scan-status').textContent = 'Spouštím kameru...';
+        try {
+            scanStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+            });
+            const video = document.getElementById('scan-video');
+            video.srcObject = scanStream;
+            await video.play();
+            document.getElementById('scan-status').textContent = 'Mířte kamerou na QR kód bedny...';
+            scanInterval = setInterval(scanFrame, 150);
+        } catch (err) {
+            document.getElementById('scan-status').textContent = 'Kamera není dostupná: ' + err.message;
+        }
+    }
+
+    function scanFrame() {
+        const video = document.getElementById('scan-video');
+        const canvas = document.getElementById('scan-canvas');
+        if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+        if (code) {
+            stopScanner();
+            handleQRResult(code.data);
+        }
+    }
+
+    function stopScanner() {
+        if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
+        if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
+        document.getElementById('scanModal').style.display = 'none';
+    }
+
+    function handleQRResult(url) {
+        try {
+            const hash = new URL(url).hash;
+            const match = hash.match(/#box-(\d+)/);
+            if (match) {
+                const index = parseInt(match[1]);
+                if (index >= 0 && index < shelfData.length) {
+                    switchTab('shelf', document.querySelector('.tab-btn'));
+                    openModal(index);
+                    return;
+                }
+            }
+        } catch {}
+        alert('QR kód nepatří k žádné bedně.\n\n' + url);
+    }
+
+    // ── Deep link ─────────────────────────────────────────────────────────────
+    function handleDeepLink() {
+        const match = location.hash.match(/#box-(\d+)/);
+        if (match) {
+            const index = parseInt(match[1]);
+            if (index >= 0 && index < shelfData.length) {
+                switchTab('shelf', document.querySelector('.tab-btn'));
+                openModal(index);
+            }
+        }
+    }
+    window.addEventListener('hashchange', handleDeepLink);
+
+    // ── Export / Import / Reset ───────────────────────────────────────────────
+    function exportData() {
+        const json = JSON.stringify({ gridConfig, shelfData }, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `regal-zaloha-${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function importData(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const payload = JSON.parse(e.target.result);
+                let importedData, importedGrid;
+                if (Array.isArray(payload)) {
+                    importedData = payload;
+                    importedGrid = { cols: 5, rows: Math.ceil(payload.length / 5) };
+                } else if (payload.shelfData && payload.gridConfig) {
+                    importedData = payload.shelfData;
+                    importedGrid = payload.gridConfig;
+                } else { alert('Neplatný soubor zálohy.'); return; }
+                if (!confirm('Přepsat aktuální data regálu touto zálohou?')) return;
+                gridConfig = importedGrid;
+                totalBoxes = gridConfig.cols * gridConfig.rows;
+                shelfData = resizeShelfData(importedData, totalBoxes);
+                save();
+                renderShelf();
+                alert('Záloha úspěšně načtena.');
+            } catch { alert('Chyba při čtení souboru.'); }
+        };
+        reader.readAsText(file);
+        event.target.value = '';
+    }
+
+    function resetAllData() {
+        if (!confirm('Opravdu smazat veškerá data regálu? Tato akce je nevratná.')) return;
+        gridConfig = { cols: 5, rows: 3 };
+        totalBoxes = 15;
+        shelfData = makeEmptyShelf(totalBoxes);
+        save();
+        renderShelf();
+        alert('Regál byl resetován.');
+    }
+
+    // ── Service Worker ────────────────────────────────────────────────────────
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+
+    // ── Init ──────────────────────────────────────────────────────────────────
+    renderShelf();
+    handleDeepLink();
+</script>
+</body>
+</html>
