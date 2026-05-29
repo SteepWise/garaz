@@ -303,6 +303,7 @@
             <label for="input-file">Fotografie bedny/obsahu:</label>
             <input type="file" id="input-file" accept="image/*">
             <img id="preview-img" src="" alt="Náhled">
+            <button type="button" id="btn-remove-img" class="btn btn-red" style="display:none; margin-top:8px; padding:6px 12px; font-size:0.85em;" onclick="removeImage()">🗑 Odstranit fotku</button>
         </div>
 
         <div class="modal-buttons">
@@ -503,6 +504,7 @@
         const prev = document.getElementById('preview-img');
         prev.src = box.image || '';
         prev.style.display = box.image ? 'block' : 'none';
+        document.getElementById('btn-remove-img').style.display = box.image ? 'inline-block' : 'none';
         loadItemsIntoModal(box.items || []);
         document.getElementById('editModal').style.display = 'flex';
     }
@@ -531,6 +533,7 @@
             const prev = document.getElementById('preview-img');
             prev.src = ev.target.result;
             prev.style.display = 'block';
+            document.getElementById('btn-remove-img').style.display = 'inline-block';
         };
         reader.readAsDataURL(file);
     });
@@ -596,6 +599,15 @@
         // scroll na konec seznamu
         const list = document.getElementById('items-list');
         list.scrollTop = list.scrollHeight;
+    }
+
+    function removeImage() {
+        shelfData[currentBoxIndex].image = '';
+        const prev = document.getElementById('preview-img');
+        prev.src = '';
+        prev.style.display = 'none';
+        document.getElementById('btn-remove-img').style.display = 'none';
+        document.getElementById('input-file').value = '';
     }
 
     document.getElementById('new-item-input').addEventListener('keydown', function(e) {
