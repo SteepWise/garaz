@@ -1,4 +1,4 @@
-const CACHE = 'garaz-v1';
+const CACHE = 'garaz-v2';
 const STATIC = [
     '/',
     '/index.html',
