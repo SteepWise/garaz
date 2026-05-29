@@ -410,8 +410,14 @@
     }
 
     function save() {
-        localStorage.setItem('shelfData', JSON.stringify(shelfData));
-        localStorage.setItem('gridConfig', JSON.stringify(gridConfig));
+        try {
+            localStorage.setItem('shelfData', JSON.stringify(shelfData));
+            localStorage.setItem('gridConfig', JSON.stringify(gridConfig));
+            return true;
+        } catch (e) {
+            alert('Chyba při ukládání: paměť prohlížeče je plná.\n\nZkuste zmenšit nebo odstranit fotku — fotky zabírají nejvíce místa.');
+            return false;
+        }
     }
 
     // ── Regál ─────────────────────────────────────────────────────────────────
@@ -529,11 +535,13 @@
         if (!file) return;
         const reader = new FileReader();
         reader.onload = function(ev) {
-            shelfData[currentBoxIndex].image = ev.target.result;
-            const prev = document.getElementById('preview-img');
-            prev.src = ev.target.result;
-            prev.style.display = 'block';
-            document.getElementById('btn-remove-img').style.display = 'inline-block';
+            resizeImage(ev.target.result, 800, function(resized) {
+                shelfData[currentBoxIndex].image = resized;
+                const prev = document.getElementById('preview-img');
+                prev.src = resized;
+                prev.style.display = 'block';
+                document.getElementById('btn-remove-img').style.display = 'inline-block';
+            });
         };
         reader.readAsDataURL(file);
     });
@@ -599,6 +607,19 @@
         // scroll na konec seznamu
         const list = document.getElementById('items-list');
         list.scrollTop = list.scrollHeight;
+    }
+
+    function resizeImage(dataUrl, maxWidth, callback) {
+        const img = new Image();
+        img.onload = function() {
+            const scale = Math.min(1, maxWidth / img.width);
+            const canvas = document.createElement('canvas');
+            canvas.width  = Math.round(img.width  * scale);
+            canvas.height = Math.round(img.height * scale);
+            canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+            callback(canvas.toDataURL('image/jpeg', 0.7));
+        };
+        img.src = dataUrl;
     }
 
     function removeImage() {
