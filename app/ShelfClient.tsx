@@ -26,22 +26,23 @@ export default function ShelfClient({ userId, initialBoxes, cols: initCols, rows
 
     if (imageFile) {
       const path = `${userId}/${box.position}-${Date.now()}`
-      const { data: upload } = await supabase.storage
+      const { data: upload, error: uploadError } = await supabase.storage
         .from('garaz_photos')
         .upload(path, imageFile, { upsert: true })
-      if (upload) {
-        const { data: { publicUrl } } = supabase.storage.from('garaz_photos').getPublicUrl(upload.path)
-        image_url = publicUrl
-      }
+      if (uploadError) throw new Error('Nahrání fotky selhalo: ' + uploadError.message)
+      const { data: { publicUrl } } = supabase.storage.from('garaz_photos').getPublicUrl(upload.path)
+      image_url = publicUrl
     }
 
     const payload = { ...box, image_url, user_id: userId }
 
     if (box.id) {
-      const { data } = await supabase.from('garaz_boxes').update(payload).eq('id', box.id).select().single()
+      const { data, error } = await supabase.from('garaz_boxes').update(payload).eq('id', box.id).select().single()
+      if (error) throw new Error('Uložení selhalo: ' + error.message)
       if (data) setBoxes(prev => prev.map(b => b.position === box.position ? data : b))
     } else {
-      const { data } = await supabase.from('garaz_boxes').insert(payload).select().single()
+      const { data, error } = await supabase.from('garaz_boxes').insert(payload).select().single()
+      if (error) throw new Error('Uložení selhalo: ' + error.message)
       if (data) setBoxes(prev => prev.map(b => b.position === box.position ? data : b))
     }
     setEditingBox(null)
@@ -49,6 +50,10 @@ export default function ShelfClient({ userId, initialBoxes, cols: initCols, rows
 
   async function handleGridChange(newCols: number, newRows: number) {
     const total = newCols * newRows
+    const currentTotal = cols * rows
+    if (total < currentTotal) {
+      await supabase.from('garaz_boxes').delete().eq('user_id', userId).gte('position', total)
+    }
     await supabase.from('garaz_settings').upsert({ user_id: userId, cols: newCols, rows: newRows })
     setCols(newCols)
     setRows(newRows)

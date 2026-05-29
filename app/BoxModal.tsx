@@ -18,6 +18,7 @@ export default function BoxModal({ box, onSave, onClose }: Props) {
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(box.image_url)
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
   function addItem() {
@@ -50,8 +51,14 @@ export default function BoxModal({ box, onSave, onClose }: Props) {
 
   async function handleSave() {
     setSaving(true)
-    await onSave({ ...box, title, category, color, items }, imageFile)
-    setSaving(false)
+    setSaveError(null)
+    try {
+      await onSave({ ...box, title, category, color, items }, imageFile)
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Nastala chyba při ukládání.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -142,6 +149,10 @@ export default function BoxModal({ box, onSave, onClose }: Props) {
               className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition"
             >📷 {imagePreview ? 'Změnit fotku' : 'Přidat fotku'}</button>
           </div>
+
+          {saveError && (
+            <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2 mb-3">⚠️ {saveError}</p>
+          )}
 
           {/* Tlačítka */}
           <div className="flex justify-end gap-3">

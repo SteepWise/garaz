@@ -5,13 +5,14 @@ import { useState } from 'react'
 type Props = {
   cols: number
   rows: number
-  onSave: (cols: number, rows: number) => void
+  onSave: (cols: number, rows: number) => Promise<void>
   onClose: () => void
 }
 
 export default function SettingsModal({ cols, rows, onSave, onClose }: Props) {
   const [newCols, setNewCols] = useState(cols)
   const [newRows, setNewRows] = useState(rows)
+  const [saving, setSaving] = useState(false)
 
   const willShrink = newCols * newRows < cols * rows
 
@@ -50,9 +51,11 @@ export default function SettingsModal({ cols, rows, onSave, onClose }: Props) {
               className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition">
               Zrušit
             </button>
-            <button onClick={() => onSave(newCols, newRows)}
-              className="px-5 py-2 bg-amber-700 hover:bg-amber-800 text-white rounded-lg text-sm font-semibold transition">
-              Použít
+            <button
+              onClick={async () => { setSaving(true); try { await onSave(newCols, newRows) } finally { setSaving(false) } }}
+              disabled={saving}
+              className="px-5 py-2 bg-amber-700 hover:bg-amber-800 text-white rounded-lg text-sm font-semibold transition disabled:opacity-50">
+              {saving ? 'Ukládám...' : 'Použít'}
             </button>
           </div>
         </div>
