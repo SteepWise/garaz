@@ -25,49 +25,56 @@ export default function RegisterPage() {
   }
 
   if (done) return (
-    <div className="min-h-screen bg-[#f4f6f9] flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-md p-8 w-full max-w-sm text-center">
-        <div className="text-4xl mb-4">📧</div>
-        <h2 className="text-xl font-bold text-gray-800 mb-2">Zkontrolujte e-mail</h2>
-        <p className="text-gray-500 text-sm">Poslali jsme vám potvrzovací odkaz na <strong>{email}</strong>.</p>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-base)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+      <div style={{ background: 'var(--bg-elevated)', borderRadius: 16, border: '1px solid #333', padding: 32, width: '100%', maxWidth: 380, textAlign: 'center' }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>📧</div>
+        <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>Zkontrolujte e-mail</h2>
+        <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>
+          Poslali jsme vám potvrzovací odkaz na <strong style={{ color: 'var(--text-primary)' }}>{email}</strong>.
+        </p>
       </div>
     </div>
   )
 
   return (
-    <div className="min-h-screen bg-[#f4f6f9] flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-md p-8 w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">Digitální Regál</h1>
-        <p className="text-gray-500 text-sm mb-6">Vytvořte nový účet</p>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-base)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+      <div style={{ background: 'var(--bg-elevated)', borderRadius: 16, border: '1px solid #333', padding: 32, width: '100%', maxWidth: 380, boxShadow: '0 8px 40px rgba(0,0,0,0.5)' }}>
+        <h1 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 28, fontWeight: 700, color: '#ff6b35', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4 }}>
+          ⬡ Digitální Regál
+        </h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>Vytvořte nový účet</p>
 
-        <form onSubmit={handleRegister} className="space-y-4">
+        <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">E-mail</label>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>E-mail</label>
             <input
-              type="email" value={email} onChange={e => setEmail(e.target.value)}
-              required className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              type="email" value={email} onChange={e => setEmail(e.target.value)} required
+              style={{ width: '100%', background: '#1a1a1a', border: '1px solid #444', borderRadius: 8, padding: '10px 12px', fontSize: 14, color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }}
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Heslo</label>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>Heslo</label>
             <input
-              type="password" value={password} onChange={e => setPassword(e.target.value)}
-              required minLength={6}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={6}
+              style={{ width: '100%', background: '#1a1a1a', border: '1px solid #444', borderRadius: 8, padding: '10px 12px', fontSize: 14, color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }}
             />
           </div>
-          {error && <p className="text-red-600 text-sm">{error}</p>}
+          {error && (
+            <p style={{ fontSize: 13, color: '#ff6b6b', background: '#2a1010', border: '1px solid #8b2020', borderRadius: 8, padding: '10px 12px' }}>
+              {error}
+            </p>
+          )}
           <button
             type="submit" disabled={loading}
-            className="w-full bg-amber-700 hover:bg-amber-800 text-white font-semibold py-2 rounded-lg transition disabled:opacity-50"
+            style={{ width: '100%', background: '#ff6b35', color: '#111', fontWeight: 700, fontSize: 15, padding: '13px', borderRadius: 8, border: 'none', cursor: 'pointer', opacity: loading ? 0.5 : 1 }}
           >
             {loading ? 'Registruji...' : 'Registrovat se'}
           </button>
         </form>
 
-        <p className="text-center text-sm text-gray-500 mt-4">
+        <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-muted)', marginTop: 20 }}>
           Máte účet?{' '}
-          <Link href="/login" className="text-amber-700 font-semibold hover:underline">Přihlásit se</Link>
+          <Link href="/login" style={{ color: '#ff6b35', fontWeight: 600 }}>Přihlásit se</Link>
         </p>
       </div>
     </div>
