@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { GarazBox, BoxItem, CATEGORY_COLORS } from '@/lib/types'
+import { GarazBox, BoxItem, CATEGORY_DARK_COLORS } from '@/lib/types'
 import { PhotoLightbox } from './PhotoLightbox'
 
 export default async function BoxPage({ params }: { params: Promise<{ position: string }> }) {
@@ -21,24 +21,29 @@ export default async function BoxPage({ params }: { params: Promise<{ position: 
 
   if (!box) {
     return (
-      <div className="min-h-screen bg-[#f4f6f9] p-4 md:p-6">
-        <div className="max-w-lg mx-auto">
-          <div className="flex items-center gap-3 mb-4">
-            <Link href="/" className="text-sm text-gray-500 hover:text-gray-700 transition">← Regál</Link>
-          </div>
-          <div className="bg-white rounded-xl shadow-md overflow-hidden">
-            <div className="h-2 bg-gray-200" />
-            <div className="p-6">
-              <h1 className="text-xl font-bold text-gray-800 mb-4">Bedna {position + 1}</h1>
-              <p className="text-sm text-gray-400 mb-6">Tato bedna je zatím prázdná.</p>
-              <div className="flex gap-3 pt-2 border-t border-gray-100">
+      <div style={{ minHeight: '100vh', background: 'var(--bg-base)', padding: '16px' }}>
+        <div style={{ maxWidth: 560, margin: '0 auto' }}>
+          <Link href="/" style={{ color: 'var(--text-secondary)', fontSize: 14, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4, marginBottom: 16 }}>
+            ← Regál
+          </Link>
+          <div style={{ background: 'var(--bg-surface)', borderRadius: 12, border: '1px solid #333', overflow: 'hidden' }}>
+            <div style={{ height: 3, background: '#333' }} />
+            <div style={{ padding: 24 }}>
+              <h1 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>
+                Bedna {position + 1}
+              </h1>
+              <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>Tato bedna je zatím prázdná.</p>
+              <div style={{ display: 'flex', gap: 10, paddingTop: 16, borderTop: '1px solid #222' }}>
                 <Link
                   href={`/?openBox=${position}`}
-                  className="flex-1 text-center px-4 py-2 bg-amber-700 hover:bg-amber-800 text-white rounded-lg text-sm font-semibold transition"
+                  style={{ flex: 1, textAlign: 'center', padding: '12px', background: '#ff6b35', color: '#111', borderRadius: 8, fontSize: 14, fontWeight: 700, textDecoration: 'none' }}
                 >
                   Upravit
                 </Link>
-                <Link href="/" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition">
+                <Link
+                  href="/"
+                  style={{ padding: '12px 16px', background: '#1e1e1e', color: 'var(--text-secondary)', borderRadius: 8, fontSize: 14, textDecoration: 'none', border: '1px solid #333' }}
+                >
                   ← Regál
                 </Link>
               </div>
@@ -49,26 +54,29 @@ export default async function BoxPage({ params }: { params: Promise<{ position: 
     )
   }
 
-  const catColor = CATEGORY_COLORS[(box as GarazBox).category] || '#ffffff'
+  const colors = CATEGORY_DARK_COLORS[(box as GarazBox).category]
+  const borderColor = colors ? colors.border : '#333'
+  const labelColor = colors ? colors.label : '#666'
   const items: BoxItem[] = (box as GarazBox).items ?? []
+  const ownedCount = items.filter(i => !i.checked).length
 
   return (
-    <div className="min-h-screen bg-[#f4f6f9] p-4 md:p-6">
-      <div className="max-w-lg mx-auto">
-        <div className="flex items-center gap-3 mb-4">
-          <Link href="/" className="text-sm text-gray-500 hover:text-gray-700 transition">← Regál</Link>
-        </div>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-base)', padding: '16px', paddingBottom: 32 }}>
+      <div style={{ maxWidth: 560, margin: '0 auto' }}>
+        <Link href="/" style={{ color: 'var(--text-secondary)', fontSize: 14, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4, marginBottom: 16 }}>
+          ← Regál
+        </Link>
 
-        <div className="bg-white rounded-xl shadow-md overflow-hidden">
-          <div className="h-2" style={{ background: catColor || '#e5e7eb' }} />
+        <div style={{ background: 'var(--bg-surface)', borderRadius: 12, border: `2px solid ${borderColor}`, overflow: 'hidden', boxShadow: `0 0 24px ${borderColor}20` }}>
+          <div style={{ height: 3, background: borderColor }} />
 
-          <div className="p-6">
+          <div style={{ padding: 20 }}>
             {box.category && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-black/[0.06] text-gray-600 mb-2 inline-block">
+              <span style={{ color: labelColor, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, display: 'inline-block', marginBottom: 8 }}>
                 {box.category}
               </span>
             )}
-            <h1 className="text-xl font-bold text-gray-800 mb-4">
+            <h1 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 26, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 16, letterSpacing: 0.5 }}>
               {box.title || `Bedna ${position + 1}`}
             </h1>
 
@@ -76,49 +84,51 @@ export default async function BoxPage({ params }: { params: Promise<{ position: 
               <img
                 src={box.image_url}
                 alt="foto bedny"
-                className="w-full h-48 object-cover rounded-lg mb-4"
+                style={{ width: '100%', height: 200, objectFit: 'cover', borderRadius: 8, marginBottom: 16, border: '1px solid #333' }}
               />
             )}
 
             {items.length > 0 ? (
-              <div className="space-y-2 mb-4">
-                <p className="text-sm font-semibold text-gray-600 mb-2">
-                  Obsah ({items.filter(i => !i.checked).length}/{items.length} mám)
+              <div style={{ marginBottom: 16 }}>
+                <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 12 }}>
+                  Obsah ({ownedCount}/{items.length} mám)
                 </p>
-                {items.map((item, idx) => (
-                  <div key={idx} className="flex items-start gap-3">
-                    <span className="mt-0.5 text-base flex-shrink-0">
-                      {item.checked ? '☐' : '☑'}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <span className={`text-sm ${item.checked ? 'text-gray-400' : 'text-gray-800'}`}>
-                        {item.text}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {items.map((item, idx) => (
+                    <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '8px 0', borderBottom: '1px solid #1a1a1a' }}>
+                      <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1, color: item.checked ? '#333' : '#4ecdc4' }}>
+                        {item.checked ? '☐' : '☑'}
                       </span>
-                      {item.image_url && (
-                        <PhotoLightbox
-                          src={item.image_url}
-                          alt="foto položky"
-                          thumbClass="mt-1 w-20 h-20 object-cover rounded"
-                        />
-                      )}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ fontSize: 14, color: item.checked ? 'var(--text-muted)' : 'var(--text-primary)' }}>
+                          {item.text}
+                        </span>
+                        {item.image_url && (
+                          <PhotoLightbox
+                            src={item.image_url}
+                            alt="foto položky"
+                            thumbClass="mt-2 w-20 h-20 object-cover rounded"
+                          />
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             ) : (
-              <p className="text-sm text-gray-400 mb-4">Bedna je prázdná.</p>
+              <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 16 }}>Bedna je prázdná.</p>
             )}
 
-            <div className="flex gap-3 pt-2 border-t border-gray-100">
+            <div style={{ display: 'flex', gap: 10, paddingTop: 16, borderTop: '1px solid #1a1a1a' }}>
               <Link
                 href={`/?openBox=${position}`}
-                className="flex-1 text-center px-4 py-2 bg-amber-700 hover:bg-amber-800 text-white rounded-lg text-sm font-semibold transition"
+                style={{ flex: 1, textAlign: 'center', padding: '14px', background: '#ff6b35', color: '#111', borderRadius: 8, fontSize: 15, fontWeight: 700, textDecoration: 'none' }}
               >
                 Upravit
               </Link>
               <Link
                 href="/"
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition"
+                style={{ padding: '14px 18px', background: '#1e1e1e', color: 'var(--text-secondary)', borderRadius: 8, fontSize: 14, textDecoration: 'none', border: '1px solid #333' }}
               >
                 ← Regál
               </Link>
