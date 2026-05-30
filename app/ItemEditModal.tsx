@@ -41,7 +41,7 @@ export default function ItemEditModal({ item, itemIndex, boxPosition, userId, on
     setSaving(true)
     setError(null)
     try {
-      let image_url = removePhoto ? undefined : item.image_url
+      let image_url: string | null | undefined = removePhoto ? null : item.image_url
       if (imageFile) {
         const path = `${userId}/items/${boxPosition}-${itemIndex}-${Date.now()}.jpg`
         const { data: upload, error: uploadError } = await supabase.storage

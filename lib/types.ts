@@ -1,7 +1,7 @@
 export type BoxItem = {
   text: string
   checked: boolean
-  image_url?: string
+  image_url?: string | null
 }
 
 export type GarazBox = {
