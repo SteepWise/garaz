@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import { GarazBox, BoxItem, CATEGORIES, BOX_COLORS } from '@/lib/types'
 import { compressImage } from '@/lib/compressImage'
 import ItemEditModal from './ItemEditModal'
+import { QRCodeCanvas } from 'qrcode.react'
 
 type Props = {
   box: GarazBox
@@ -24,7 +25,9 @@ export default function BoxModal({ box, userId, onSave, onClose }: Props) {
   const [saveError, setSaveError] = useState<string | null>(null)
   const [editingItemIdx, setEditingItemIdx] = useState<number | null>(null)
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null)
+  const [showQr, setShowQr] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+  const qrRef = useRef<HTMLDivElement>(null)
 
   function addItem() {
     const text = newItem.trim()
@@ -58,6 +61,15 @@ export default function BoxModal({ box, userId, onSave, onClose }: Props) {
     const reader = new FileReader()
     reader.onload = ev => setImagePreview(ev.target?.result as string)
     reader.readAsDataURL(compressed)
+  }
+
+  function downloadQr() {
+    const canvas = qrRef.current?.querySelector('canvas')
+    if (!canvas) return
+    const link = document.createElement('a')
+    link.download = `bedna-${box.position + 1}.png`
+    link.href = canvas.toDataURL('image/png')
+    link.click()
   }
 
   async function handleSave() {
@@ -174,6 +186,32 @@ export default function BoxModal({ box, userId, onSave, onClose }: Props) {
               onClick={() => fileRef.current?.click()}
               className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition"
             >📷 {imagePreview ? 'Změnit fotku' : 'Přidat fotku'}</button>
+          </div>
+
+          {/* QR kód */}
+          <div className="mb-5">
+            <button
+              onClick={() => setShowQr(v => !v)}
+              className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-amber-700 transition"
+            >
+              <span>🔲 QR kód bedny</span>
+              <span className="text-gray-400 text-xs">{showQr ? '▲' : '▼'}</span>
+            </button>
+            {showQr && (
+              <div className="mt-3 flex flex-col items-center gap-3">
+                <div ref={qrRef}>
+                  <QRCodeCanvas
+                    value={typeof window !== 'undefined' ? `${window.location.origin}/box/${box.position}` : `/box/${box.position}`}
+                    size={180}
+                    includeMargin
+                  />
+                </div>
+                <button
+                  onClick={downloadQr}
+                  className="px-4 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition"
+                >⬇ Stáhnout PNG</button>
+              </div>
+            )}
           </div>
 
           {saveError && (
