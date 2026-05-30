@@ -1,54 +1,32 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import { useRouter } from 'next/navigation'
 
 export default function QrScannerModal({ onClose }: { onClose: () => void }) {
-  const scannerRef = useRef<{ stop: () => Promise<void> } | null>(null)
   const router = useRouter()
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    let stopped = false
-
-    async function startScanner() {
+  async function handleFile(file: File) {
+    try {
       const { Html5Qrcode } = await import('html5-qrcode')
-      const scanner = new Html5Qrcode('qr-reader')
-      scannerRef.current = scanner
-
-      try {
-        await scanner.start(
-          { facingMode: 'environment' },
-          { fps: 10, qrbox: { width: 220, height: 220 } },
-          (decodedText: string) => {
-            if (stopped) return
-            stopped = true
-            scanner.stop().catch(() => {})
-            const origin = window.location.origin
-            const escaped = origin.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-            const match = decodedText.match(new RegExp(`^${escaped}/box/(\\d+)$`))
-            if (match) {
-              router.push(`/box/${match[1]}`)
-              onClose()
-            } else {
-              alert('Neznámý QR kód')
-              onClose()
-            }
-          },
-          undefined
-        )
-      } catch {
-        alert('Nelze získat přístup ke kameře.')
+      const scanner = new Html5Qrcode('qr-reader-hidden')
+      const decodedText = await scanner.scanFile(file, false)
+      const origin = window.location.origin
+      const escaped = origin.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      const match = decodedText.match(new RegExp(`^${escaped}/box/(\\d+)$`))
+      if (match) {
+        router.push(`/box/${match[1]}`)
+        onClose()
+      } else {
+        alert('Neznámý QR kód')
         onClose()
       }
+    } catch {
+      alert('QR kód se nepodařilo přečíst.')
+      onClose()
     }
-
-    startScanner()
-
-    return () => {
-      stopped = true
-      scannerRef.current?.stop().catch(() => {})
-    }
-  }, [])
+  }
 
   return (
     <div
@@ -66,8 +44,25 @@ export default function QrScannerModal({ onClose }: { onClose: () => void }) {
             className="text-gray-400 hover:text-gray-600 text-xl leading-none"
           >✕</button>
         </div>
-        <div id="qr-reader" className="w-full rounded-lg overflow-hidden" />
-        <p className="text-xs text-gray-400 text-center mt-3">Namiřte kameru na QR kód bedny</p>
+        <div id="qr-reader-hidden" className="hidden" />
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="hidden"
+          onChange={e => {
+            const file = e.target.files?.[0]
+            if (file) handleFile(file)
+          }}
+        />
+        <button
+          onClick={() => inputRef.current?.click()}
+          className="w-full py-10 bg-amber-700 hover:bg-amber-800 text-white rounded-xl font-semibold text-base transition"
+        >
+          Vyfotit QR kód
+        </button>
+        <p className="text-xs text-gray-400 text-center mt-3">Namiřte kameru na QR kód bedny a vyfoťte ho</p>
       </div>
     </div>
   )
