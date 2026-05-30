@@ -48,3 +48,14 @@ export const BOX_COLORS = [
   { value: '#ffccff', label: 'Růžová' },
   { value: '#e6e6e6', label: 'Šedá' },
 ]
+
+export const CATEGORY_DARK_COLORS: Record<string, { border: string; label: string }> = {
+  '🔧 Nářadí':             { border: '#b8860b', label: '#ffd700' },
+  '⚡ Elektro':            { border: '#1a6b8a', label: '#4ecdc4' },
+  '🌱 Zahrada':            { border: '#2d6a4f', label: '#74c69d' },
+  '🚗 Auto':               { border: '#8b2020', label: '#ff6b6b' },
+  '🏠 Domácnost':          { border: '#5a4a78', label: '#c084fc' },
+  '🎨 Malování':           { border: '#7a3060', label: '#f9a8d4' },
+  '🔩 Spojovací materiál': { border: '#7a6020', label: '#fbbf24' },
+  '📦 Různé':              { border: '#444444', label: '#aaaaaa' },
+}
