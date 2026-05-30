@@ -85,26 +85,26 @@ export default function BoxModal({ box, userId, onSave, onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[92vh] overflow-y-auto">
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ background: 'rgba(0,0,0,0.8)' }}>
+      <div className="rounded-xl w-full max-w-md max-h-[92vh] overflow-y-auto" style={{ background: 'var(--bg-elevated)', border: '1px solid #444', boxShadow: '0 8px 40px rgba(0,0,0,0.6)' }}>
         <div className="p-6">
-          <h2 className="text-lg font-bold text-gray-800 mb-4">Upravit bednu</h2>
+          <h2 className="font-bold mb-4" style={{ color: '#ff6b35', fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, textTransform: 'uppercase', fontSize: 18 }}>Upravit bednu</h2>
 
           {/* Název */}
           <div className="mb-4">
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Název</label>
+            <label className="block text-sm font-semibold mb-1" style={{ color: 'var(--text-secondary)' }}>Název</label>
             <input
               type="text" value={title} onChange={e => setTitle(e.target.value)} maxLength={60}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style={{ background: '#1a1a1a', border: '1px solid #444', color: 'var(--text-primary)' }}
             />
           </div>
 
           {/* Kategorie */}
           <div className="mb-4">
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Kategorie</label>
+            <label className="block text-sm font-semibold mb-1" style={{ color: 'var(--text-secondary)' }}>Kategorie</label>
             <select
               value={category} onChange={e => setCategory(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style={{ background: '#1a1a1a', border: '1px solid #444', color: 'var(--text-primary)' }}
             >
               {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
             </select>
@@ -112,13 +112,13 @@ export default function BoxModal({ box, userId, onSave, onClose }: Props) {
 
           {/* Obsah / položky */}
           <div className="mb-4">
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Obsah bedny</label>
-            <div className="border border-gray-200 rounded-lg max-h-48 overflow-y-auto p-2 mb-2 space-y-1 bg-gray-50">
-              {items.length === 0 && <p className="text-xs text-gray-400 py-1">Zatím žádné položky.</p>}
+            <label className="block text-sm font-semibold mb-1" style={{ color: 'var(--text-secondary)' }}>Obsah bedny</label>
+            <div className="rounded-lg max-h-48 overflow-y-auto p-2 mb-2 space-y-1" style={{ background: '#1a1a1a', border: '1px solid #333' }}>
+              {items.length === 0 && <p className="text-xs py-1" style={{ color: 'var(--text-muted)' }}>Zatím žádné položky.</p>}
               {items.map((item, idx) => (
                 <div
                   key={idx}
-                  className={`flex items-center gap-2 rounded px-1 py-0.5 hover:bg-gray-100 ${item.checked ? 'opacity-60' : ''}`}
+                  className={`flex items-center gap-2 rounded px-2 py-1.5 ${item.checked ? 'opacity-40' : ''}`}
                 >
                   <input
                     type="checkbox"
@@ -128,7 +128,7 @@ export default function BoxModal({ box, userId, onSave, onClose }: Props) {
                   />
                   <span
                     onClick={() => setEditingItemIdx(idx)}
-                    className={`flex-1 text-sm cursor-pointer select-none ${item.checked ? 'line-through text-gray-400' : 'text-gray-800'}`}
+                    className={`flex-1 text-sm cursor-pointer select-none ${item.checked ? 'line-through' : ''}`} style={{ color: item.checked ? 'var(--text-muted)' : 'var(--text-primary)' }}
                   >
                     {item.text}
                   </span>
@@ -139,7 +139,7 @@ export default function BoxModal({ box, userId, onSave, onClose }: Props) {
                       title="Zobrazit fotku"
                     >📷</button>
                   )}
-                  <button onClick={() => removeItem(idx)} className="text-gray-300 hover:text-red-500 text-xs px-1 flex-shrink-0">✕</button>
+                  <button onClick={() => removeItem(idx)} className="text-xs px-1 flex-shrink-0 transition-colors" style={{ color: '#444' }} onMouseEnter={e => (e.currentTarget.style.color = '#ff6b6b')} onMouseLeave={e => (e.currentTarget.style.color = '#444')}>✕</button>
                 </div>
               ))}
             </div>
@@ -148,22 +148,22 @@ export default function BoxModal({ box, userId, onSave, onClose }: Props) {
                 type="text" value={newItem} onChange={e => setNewItem(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && addItem()}
                 placeholder="Nová položka... (Enter)"
-                className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="flex-1 rounded-lg px-3 py-1.5 text-sm focus:outline-none" style={{ background: '#1a1a1a', border: '1px solid #444', color: 'var(--text-primary)' }}
               />
               <button onClick={addItem}
-                className="px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-lg font-bold transition">+</button>
+                className="px-4 py-1.5 rounded-lg text-lg font-bold transition" style={{ background: '#1f4a1f', color: '#4ecdc4', border: '1px solid #2d6a4f' }}>+</button>
             </div>
           </div>
 
           {/* Barva */}
           <div className="mb-4">
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Barva bedny</label>
+            <label className="block text-sm font-semibold mb-1" style={{ color: 'var(--text-secondary)' }}>Barva bedny</label>
             <div className="flex gap-2 flex-wrap">
               {BOX_COLORS.map(c => (
                 <button
                   key={c.value} onClick={() => setColor(c.value)} title={c.label}
-                  className={`w-8 h-8 rounded-full border-2 transition ${color === c.value ? 'border-amber-600 scale-110' : 'border-gray-300'}`}
-                  style={{ background: c.value }}
+                  className={`w-8 h-8 rounded-full transition ${color === c.value ? 'scale-110' : ''}`}
+                  style={{ background: c.value, border: color === c.value ? '2px solid #ff6b35' : '2px solid #333' }}
                 />
               ))}
             </div>
@@ -171,20 +171,20 @@ export default function BoxModal({ box, userId, onSave, onClose }: Props) {
 
           {/* Fotka */}
           <div className="mb-5">
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Fotografie</label>
+            <label className="block text-sm font-semibold mb-1" style={{ color: 'var(--text-secondary)' }}>Fotografie</label>
             {imagePreview && (
               <div className="mb-2 relative">
                 <img src={imagePreview} alt="náhled" className="w-full h-36 object-cover rounded-lg" />
                 <button
                   onClick={() => { setImagePreview(null); setImageFile(null) }}
-                  className="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded"
+                  className="absolute top-1 right-1 text-white text-xs px-2 py-0.5 rounded" style={{ background: '#8b2020' }}
                 >Odstranit</button>
               </div>
             )}
             <input ref={fileRef} type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
             <button
               onClick={() => fileRef.current?.click()}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition"
+              className="px-4 py-2 rounded-lg text-sm transition" style={{ background: '#1e1e1e', border: '1px solid #444', color: 'var(--text-secondary)' }}
             >📷 {imagePreview ? 'Změnit fotku' : 'Přidat fotku'}</button>
           </div>
 
@@ -192,7 +192,7 @@ export default function BoxModal({ box, userId, onSave, onClose }: Props) {
           <div className="mb-5">
             <button
               onClick={() => setShowQr(v => !v)}
-              className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-amber-700 transition"
+              className="flex items-center gap-2 text-sm font-semibold transition" style={{ color: 'var(--text-secondary)' }}
             >
               <span>🔲 QR kód bedny</span>
               <span className="text-gray-400 text-xs">{showQr ? '▲' : '▼'}</span>
@@ -208,24 +208,24 @@ export default function BoxModal({ box, userId, onSave, onClose }: Props) {
                 </div>
                 <button
                   onClick={downloadQr}
-                  className="px-4 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition"
+                  className="px-4 py-1.5 rounded-lg text-sm transition" style={{ background: '#1e1e1e', border: '1px solid #444', color: 'var(--text-secondary)' }}
                 >⬇ Stáhnout PNG</button>
               </div>
             )}
           </div>
 
           {saveError && (
-            <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2 mb-3">⚠️ {saveError}</p>
+            <p className="text-sm rounded-lg px-3 py-2 mb-3" style={{ color: '#ff6b6b', background: '#2a1010', border: '1px solid #8b2020' }}>⚠️ {saveError}</p>
           )}
 
           {/* Tlačítka */}
           <div className="flex justify-end gap-3">
             <button onClick={onClose}
-              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition">
+              className="px-4 py-2.5 rounded-lg text-sm font-medium transition" style={{ background: '#1e1e1e', color: 'var(--text-secondary)', border: '1px solid #333' }}>
               Zrušit
             </button>
             <button onClick={handleSave} disabled={saving}
-              className="px-5 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-semibold transition disabled:opacity-50">
+              className="px-5 py-2.5 rounded-lg text-sm font-semibold transition disabled:opacity-40" style={{ background: '#ff6b35', color: '#111' }}>
               {saving ? 'Ukládám...' : 'Uložit'}
             </button>
           </div>
