@@ -20,10 +20,29 @@ export default async function BoxPage({ params }: { params: Promise<{ position: 
 
   if (!box) {
     return (
-      <div className="min-h-screen bg-[#f4f6f9] flex items-center justify-center p-4">
-        <div className="bg-white rounded-xl shadow-md p-8 text-center">
-          <p className="text-gray-500 mb-4">Bedna nenalezena.</p>
-          <Link href="/" className="text-amber-700 font-semibold hover:underline">← Zpět na regál</Link>
+      <div className="min-h-screen bg-[#f4f6f9] p-4 md:p-6">
+        <div className="max-w-lg mx-auto">
+          <div className="flex items-center gap-3 mb-4">
+            <Link href="/" className="text-sm text-gray-500 hover:text-gray-700 transition">← Regál</Link>
+          </div>
+          <div className="bg-white rounded-xl shadow-md overflow-hidden">
+            <div className="h-2 bg-gray-200" />
+            <div className="p-6">
+              <h1 className="text-xl font-bold text-gray-800 mb-4">Bedna {position + 1}</h1>
+              <p className="text-sm text-gray-400 mb-6">Tato bedna je zatím prázdná.</p>
+              <div className="flex gap-3 pt-2 border-t border-gray-100">
+                <Link
+                  href={`/?openBox=${position}`}
+                  className="flex-1 text-center px-4 py-2 bg-amber-700 hover:bg-amber-800 text-white rounded-lg text-sm font-semibold transition"
+                >
+                  Upravit
+                </Link>
+                <Link href="/" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition">
+                  ← Regál
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     )
