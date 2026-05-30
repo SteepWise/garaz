@@ -83,15 +83,15 @@ export default async function BoxPage({ params }: { params: Promise<{ position: 
             {items.length > 0 ? (
               <div className="space-y-2 mb-4">
                 <p className="text-sm font-semibold text-gray-600 mb-2">
-                  Obsah ({items.filter(i => i.checked).length}/{items.length} mám)
+                  Obsah ({items.filter(i => !i.checked).length}/{items.length} mám)
                 </p>
                 {items.map((item, idx) => (
                   <div key={idx} className="flex items-start gap-3">
                     <span className="mt-0.5 text-base flex-shrink-0">
-                      {item.checked ? '☑' : '☐'}
+                      {item.checked ? '☐' : '☑'}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <span className={`text-sm ${item.checked ? 'text-gray-800' : 'text-gray-400'}`}>
+                      <span className={`text-sm ${item.checked ? 'text-gray-400' : 'text-gray-800'}`}>
                         {item.text}
                       </span>
                       {item.image_url && (
