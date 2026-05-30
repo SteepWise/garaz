@@ -50,13 +50,16 @@ export default function BoxModal({ box, userId, onSave, onClose }: Props) {
 
   async function handleItemConfirm(idx: number, updated: BoxItem) {
     const newItems = items.map((it, i) => i === idx ? updated : it)
+    console.log('[garaz] handleItemConfirm idx:', idx, 'updated:', JSON.stringify(updated), 'newItems:', JSON.stringify(newItems))
     setItems(newItems)
     setEditingItemIdx(null)
     setSaving(true)
     setSaveError(null)
     try {
       await onSave({ ...box, title, category, color, items: newItems }, imageFile)
+      console.log('[garaz] auto-save OK')
     } catch (err) {
+      console.error('[garaz] auto-save FAIL:', err)
       setSaveError(err instanceof Error ? err.message : 'Nastala chyba při ukládání.')
     } finally {
       setSaving(false)
