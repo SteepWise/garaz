@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { GarazBox, BoxItem, CATEGORY_COLORS, CATEGORIES, BOX_COLORS } from '@/lib/types'
+import { GarazBox, BoxItem, CATEGORY_DARK_COLORS } from '@/lib/types'
 import BoxModal from './BoxModal'
 import SettingsModal from './SettingsModal'
+import BottomNav from './BottomNav'
 import dynamic from 'next/dynamic'
 const QrScannerModal = dynamic(() => import('./QrScannerModal'), { ssr: false })
 
@@ -24,6 +25,7 @@ export default function ShelfClient({ userId, initialBoxes, cols: initCols, rows
   const [editingBox, setEditingBox] = useState<GarazBox | null>(null)
   const [showSettings, setShowSettings] = useState(false)
   const [showScanner, setShowScanner] = useState(false)
+  const [activeCategory, setActiveCategory] = useState('')
   const router = useRouter()
   const supabase = createClient()
 
@@ -70,6 +72,11 @@ export default function ShelfClient({ userId, initialBoxes, cols: initCols, rows
     setEditingBox(null)
   }
 
+  async function handleLogout() {
+    await supabase.auth.signOut()
+    window.location.href = '/login'
+  }
+
   async function handleGridChange(newCols: number, newRows: number) {
     const total = newCols * newRows
     await supabase.from('garaz_settings').upsert({ user_id: userId, cols: newCols, rows: newRows })
@@ -84,82 +91,152 @@ export default function ShelfClient({ userId, initialBoxes, cols: initCols, rows
           created_at: '', updated_at: '',
         }
       })
-      // Zachovat bedny mimo aktuální grid (skryté, ale ne smazané)
       const beyond = prev.filter(b => b.position >= total && b.id !== null)
       return [...filled, ...beyond]
     })
     setShowSettings(false)
   }
 
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    window.location.href = '/login'
-  }
+  const visibleBoxes = boxes.filter(b => b.position < cols * rows)
+  const filteredBoxes = activeCategory
+    ? visibleBoxes.filter(b => b.category === activeCategory)
+    : visibleBoxes
 
   return (
-    <div className="min-h-screen bg-[#f4f6f9] p-4 md:p-6">
-      {/* Hlavička */}
-      <div className="max-w-6xl mx-auto mb-6 flex items-center gap-3">
-        <h1 className="text-2xl font-bold text-gray-800 flex-1">📦 Digitální Regál</h1>
-        <button
-          onClick={() => setShowSettings(true)}
-          className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
-        >⚙️ Nastavení</button>
-        <button
-          onClick={() => setShowScanner(true)}
-          className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
-        >📷 Skenovat</button>
-        <button
-          onClick={handleLogout}
-          className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50 transition"
-        >Odhlásit</button>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-base)', paddingBottom: 80 }}>
+      {/* Header */}
+      <div style={{
+        background: '#0d0d0d',
+        borderBottom: '1px solid #222',
+        padding: '14px 16px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        position: 'sticky',
+        top: 0,
+        zIndex: 40,
+      }}>
+        <h1 style={{
+          fontFamily: "'Barlow Condensed', sans-serif",
+          fontSize: 22,
+          fontWeight: 700,
+          color: '#ff6b35',
+          letterSpacing: 2,
+          textTransform: 'uppercase',
+          margin: 0,
+          flex: 1,
+        }}>
+          ⬡ Digitální Regál
+        </h1>
+        {activeCategory && (
+          <span style={{
+            fontSize: 12,
+            color: '#aaa',
+            background: '#1e1e1e',
+            padding: '4px 10px',
+            borderRadius: 12,
+            border: '1px solid #333',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+          }}>
+            {activeCategory}
+            <button
+              onClick={() => setActiveCategory('')}
+              style={{ color: '#ff6b35', background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, padding: 0, lineHeight: 1 }}
+            >✕</button>
+          </span>
+        )}
       </div>
 
-      {/* Regál */}
-      <div
-        className="max-w-6xl mx-auto rounded-xl p-4 shadow-2xl"
-        style={{ background: '#8B5A2B', display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: '12px' }}
-      >
-        {boxes.filter(b => b.position < cols * rows).map(box => {
-          const catColor = CATEGORY_COLORS[box.category] || '#ffffff'
-          const borderColor = box.color !== '#ffffff' ? box.color : '#ccc'
-          const hasItems = box.items?.length > 0
-          const checkedCount = box.items?.filter((it: BoxItem) => it.checked).length ?? 0
-          const preview = box.items?.slice(0, 4) ?? []
+      {/* Grid beden */}
+      <div style={{ padding: 14, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+        {filteredBoxes.map(box => {
+          const colors = CATEGORY_DARK_COLORS[box.category]
+          const borderColor = colors ? colors.border : '#333'
+          const labelColor = colors ? colors.label : '#666'
+          const hasItems = (box.items?.length ?? 0) > 0
+          const ownedCount = box.items?.filter((it: BoxItem) => !it.checked).length ?? 0
+          const totalCount = box.items?.length ?? 0
+          const allOwned = hasItems && ownedCount === totalCount
+          const preview = box.items?.slice(0, 3) ?? []
+          const isEmpty = !box.id
 
           return (
             <div
               key={box.position}
               onClick={() => router.push(`/box/${box.position}`)}
-              className="rounded-md cursor-pointer transition-transform hover:scale-[1.02] relative flex flex-col p-2.5 min-h-[140px]"
-              style={{ background: catColor || '#fff', border: `3px solid ${borderColor}` }}
+              style={{
+                background: isEmpty ? 'transparent' : 'var(--bg-surface)',
+                border: isEmpty ? '1px dashed #2a2a2a' : `2px solid ${borderColor}`,
+                borderRadius: 8,
+                padding: 12,
+                minHeight: 120,
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                position: 'relative',
+                WebkitTapHighlightColor: 'transparent',
+                transition: 'opacity 0.1s',
+              }}
             >
-              {box.category && (
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-black/[0.08] text-gray-600 self-start mb-1 truncate max-w-full">
-                  {box.category}
-                </span>
-              )}
-              <div className="font-bold text-[13px] text-center border-b border-black/10 pb-1 mb-1.5 truncate">
-                {box.title || `Bedna ${box.position + 1}`}
-              </div>
-              <div className="flex-1 overflow-hidden">
-                {preview.map((item: BoxItem, idx: number) => (
-                  <div key={idx} className={`text-[11px] flex items-center gap-1 leading-[1.3] ${item.checked ? 'text-gray-400 line-through' : 'text-gray-700'}`}>
-                    <span className="text-[9px]">{item.checked ? '☑' : '☐'}</span>
-                    <span className="truncate">{item.text}</span>
-                  </div>
-                ))}
-                {box.items?.length > 4 && (
-                  <div className="text-[10px] text-gray-400 mt-0.5">+{box.items.length - 4} dalších</div>
-                )}
-              </div>
-              {box.image_url && (
-                <img src={box.image_url} alt="" className="w-full h-12 object-cover rounded mt-1.5" />
-              )}
-              {hasItems && (
-                <div className="absolute bottom-1.5 right-1.5 text-[10px] text-gray-400">
-                  {checkedCount}/{box.items.length}
+              {isEmpty ? (
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2a2a2a', fontSize: 28, fontWeight: 300 }}>
+                  +
                 </div>
+              ) : (
+                <>
+                  {box.category && (
+                    <span style={{ color: labelColor, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 5 }}>
+                      {box.category}
+                    </span>
+                  )}
+                  <div style={{
+                    fontFamily: "'Barlow Condensed', sans-serif",
+                    fontSize: 15,
+                    fontWeight: 700,
+                    color: 'var(--text-primary)',
+                    marginBottom: 7,
+                    letterSpacing: 0.5,
+                    lineHeight: 1.2,
+                  }}>
+                    {box.title || `Bedna ${box.position + 1}`}
+                  </div>
+                  <div style={{ flex: 1, overflow: 'hidden' }}>
+                    {preview.map((item: BoxItem, idx: number) => (
+                      <div key={idx} style={{
+                        fontSize: 12,
+                        color: item.checked ? '#333' : '#999',
+                        display: 'flex',
+                        gap: 5,
+                        lineHeight: 1.6,
+                        alignItems: 'baseline',
+                      }}>
+                        <span style={{ color: item.checked ? '#333' : '#4ecdc4', fontSize: 10, flexShrink: 0 }}>
+                          {item.checked ? '☐' : '☑'}
+                        </span>
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {item.text}
+                        </span>
+                      </div>
+                    ))}
+                    {box.items?.length > 3 && (
+                      <div style={{ fontSize: 10, color: '#3a3a3a', marginTop: 2 }}>
+                        +{box.items.length - 3} dalších
+                      </div>
+                    )}
+                  </div>
+                  {hasItems && (
+                    <div style={{
+                      position: 'absolute', bottom: 8, right: 10,
+                      fontSize: 10, fontWeight: 700,
+                      color: allOwned ? '#4ecdc4' : '#ff6b35',
+                      fontFamily: "'Courier New', monospace",
+                    }}>
+                      {ownedCount}/{totalCount}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )
@@ -167,24 +244,20 @@ export default function ShelfClient({ userId, initialBoxes, cols: initCols, rows
       </div>
 
       {editingBox && (
-        <BoxModal
-          box={editingBox}
-          userId={userId}
-          onSave={handleSave}
-          onClose={() => setEditingBox(null)}
-        />
+        <BoxModal box={editingBox} userId={userId} onSave={handleSave} onClose={() => setEditingBox(null)} />
       )}
-
       {showSettings && (
-        <SettingsModal
-          cols={cols} rows={rows}
-          onSave={handleGridChange}
-          onClose={() => setShowSettings(false)}
-        />
+        // @ts-ignore — onLogout will be added to SettingsModal in Task 7
+        <SettingsModal cols={cols} rows={rows} onSave={handleGridChange} onClose={() => setShowSettings(false)} onLogout={handleLogout} />
       )}
-      {showScanner && (
-        <QrScannerModal onClose={() => setShowScanner(false)} />
-      )}
+      {showScanner && <QrScannerModal onClose={() => setShowScanner(false)} />}
+
+      <BottomNav
+        activeCategory={activeCategory}
+        onCategoryChange={setActiveCategory}
+        onScanClick={() => setShowScanner(true)}
+        onSettingsClick={() => setShowSettings(true)}
+      />
     </div>
   )
 }
