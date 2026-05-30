@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import ShelfClient from './ShelfClient'
 
-export default async function Home() {
+export default async function Home({ searchParams }: { searchParams: Promise<{ openBox?: string }> }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -25,5 +25,8 @@ export default async function Home() {
     }
   })
 
-  return <ShelfClient userId={user.id} initialBoxes={filled} cols={cols} rows={rows} />
+  const { openBox } = await searchParams
+  const openBoxNum = openBox !== undefined ? parseInt(openBox, 10) : undefined
+
+  return <ShelfClient userId={user.id} initialBoxes={filled} cols={cols} rows={rows} openBox={openBoxNum} />
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { GarazBox, BoxItem, CATEGORY_COLORS, CATEGORIES, BOX_COLORS } from '@/lib/types'
 import BoxModal from './BoxModal'
@@ -11,15 +11,22 @@ type Props = {
   initialBoxes: GarazBox[]
   cols: number
   rows: number
+  openBox?: number
 }
 
-export default function ShelfClient({ userId, initialBoxes, cols: initCols, rows: initRows }: Props) {
+export default function ShelfClient({ userId, initialBoxes, cols: initCols, rows: initRows, openBox }: Props) {
   const [boxes, setBoxes] = useState<GarazBox[]>(initialBoxes)
   const [cols, setCols] = useState(initCols)
   const [rows, setRows] = useState(initRows)
   const [editingBox, setEditingBox] = useState<GarazBox | null>(null)
   const [showSettings, setShowSettings] = useState(false)
   const supabase = createClient()
+
+  useEffect(() => {
+    if (openBox === undefined) return
+    const box = initialBoxes.find(b => b.position === openBox)
+    if (box) setEditingBox(box)
+  }, [])
 
   async function handleSave(box: GarazBox, imageFile: File | null) {
     let image_url = box.image_url
@@ -60,10 +67,6 @@ export default function ShelfClient({ userId, initialBoxes, cols: initCols, rows
 
   async function handleGridChange(newCols: number, newRows: number) {
     const total = newCols * newRows
-    const currentTotal = cols * rows
-    if (total < currentTotal) {
-      await supabase.from('garaz_boxes').delete().eq('user_id', userId).gte('position', total)
-    }
     await supabase.from('garaz_settings').upsert({ user_id: userId, cols: newCols, rows: newRows })
     setCols(newCols)
     setRows(newRows)
@@ -76,7 +79,9 @@ export default function ShelfClient({ userId, initialBoxes, cols: initCols, rows
           created_at: '', updated_at: '',
         }
       })
-      return filled
+      // Zachovat bedny mimo aktuální grid (skryté, ale ne smazané)
+      const beyond = prev.filter(b => b.position >= total && b.id !== null)
+      return [...filled, ...beyond]
     })
     setShowSettings(false)
   }
@@ -106,7 +111,7 @@ export default function ShelfClient({ userId, initialBoxes, cols: initCols, rows
         className="max-w-6xl mx-auto rounded-xl p-4 shadow-2xl"
         style={{ background: '#8B5A2B', display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: '12px' }}
       >
-        {boxes.map(box => {
+        {boxes.filter(b => b.position < cols * rows).map(box => {
           const catColor = CATEGORY_COLORS[box.category] || '#ffffff'
           const borderColor = box.color !== '#ffffff' ? box.color : '#ccc'
           const hasItems = box.items?.length > 0
