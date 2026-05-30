@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/client'
 import { GarazBox, BoxItem, CATEGORY_COLORS, CATEGORIES, BOX_COLORS } from '@/lib/types'
 import BoxModal from './BoxModal'
 import SettingsModal from './SettingsModal'
+import dynamic from 'next/dynamic'
+const QrScannerModal = dynamic(() => import('./QrScannerModal'), { ssr: false })
 
 type Props = {
   userId: string
@@ -20,6 +22,7 @@ export default function ShelfClient({ userId, initialBoxes, cols: initCols, rows
   const [rows, setRows] = useState(initRows)
   const [editingBox, setEditingBox] = useState<GarazBox | null>(null)
   const [showSettings, setShowSettings] = useState(false)
+  const [showScanner, setShowScanner] = useState(false)
   const supabase = createClient()
 
   useEffect(() => {
@@ -101,6 +104,10 @@ export default function ShelfClient({ userId, initialBoxes, cols: initCols, rows
           className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
         >⚙️ Nastavení</button>
         <button
+          onClick={() => setShowScanner(true)}
+          className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+        >📷 Skenovat</button>
+        <button
           onClick={handleLogout}
           className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50 transition"
         >Odhlásit</button>
@@ -172,6 +179,9 @@ export default function ShelfClient({ userId, initialBoxes, cols: initCols, rows
           onSave={handleGridChange}
           onClose={() => setShowSettings(false)}
         />
+      )}
+      {showScanner && (
+        <QrScannerModal onClose={() => setShowScanner(false)} />
       )}
     </div>
   )
