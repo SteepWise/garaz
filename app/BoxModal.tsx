@@ -48,9 +48,19 @@ export default function BoxModal({ box, userId, onSave, onClose }: Props) {
     setItems(prev => prev.filter((_, i) => i !== idx))
   }
 
-  function handleItemConfirm(idx: number, updated: BoxItem) {
-    setItems(prev => prev.map((it, i) => i === idx ? updated : it))
+  async function handleItemConfirm(idx: number, updated: BoxItem) {
+    const newItems = items.map((it, i) => i === idx ? updated : it)
+    setItems(newItems)
     setEditingItemIdx(null)
+    setSaving(true)
+    setSaveError(null)
+    try {
+      await onSave({ ...box, title, category, color, items: newItems }, imageFile)
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Nastala chyba při ukládání.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
