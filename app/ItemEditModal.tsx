@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { BoxItem } from '@/lib/types'
 import { compressImage } from '@/lib/compressImage'
@@ -22,7 +22,7 @@ export default function ItemEditModal({ item, itemIndex, boxPosition, userId, on
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -66,8 +66,9 @@ export default function ItemEditModal({ item, itemIndex, boxPosition, userId, on
           <h3 className="text-base font-bold text-gray-800 mb-4">Upravit položku</h3>
 
           <div className="mb-4">
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Text</label>
+            <label htmlFor="item-text" className="block text-sm font-semibold text-gray-700 mb-1">Text</label>
             <input
+              id="item-text"
               type="text"
               value={text}
               onChange={e => setText(e.target.value)}
