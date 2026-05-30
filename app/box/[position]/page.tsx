@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { GarazBox, BoxItem, CATEGORY_COLORS } from '@/lib/types'
+import { PhotoLightbox } from './PhotoLightbox'
 
 export default async function BoxPage({ params }: { params: Promise<{ position: string }> }) {
   const { position: posStr } = await params
@@ -82,7 +83,7 @@ export default async function BoxPage({ params }: { params: Promise<{ position: 
             {items.length > 0 ? (
               <div className="space-y-2 mb-4">
                 <p className="text-sm font-semibold text-gray-600 mb-2">
-                  Obsah ({items.filter(i => i.checked).length}/{items.length} splněno)
+                  Obsah ({items.filter(i => i.checked).length}/{items.length} mám)
                 </p>
                 {items.map((item, idx) => (
                   <div key={idx} className="flex items-start gap-3">
@@ -90,14 +91,14 @@ export default async function BoxPage({ params }: { params: Promise<{ position: 
                       {item.checked ? '☑' : '☐'}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <span className={`text-sm ${item.checked ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+                      <span className={`text-sm ${item.checked ? 'text-gray-800' : 'text-gray-400'}`}>
                         {item.text}
                       </span>
                       {item.image_url && (
-                        <img
+                        <PhotoLightbox
                           src={item.image_url}
                           alt="foto položky"
-                          className="mt-1 w-20 h-20 object-cover rounded"
+                          thumbClass="mt-1 w-20 h-20 object-cover rounded"
                         />
                       )}
                     </div>
