@@ -38,13 +38,21 @@ export default function ShelfClient({ userId, initialBoxes, cols: initCols, rows
     const { id, created_at, updated_at, ...rest } = box
     const payload = { ...rest, image_url, user_id: userId }
 
+    console.log('[garaz] save payload:', JSON.stringify(payload))
+
     if (box.id) {
       const { data, error } = await supabase.from('garaz_boxes').update(payload).eq('id', box.id).select().single()
-      if (error) throw new Error('Uložení selhalo: ' + error.message)
+      if (error) {
+        console.error('[garaz] update error:', error)
+        throw new Error('Uložení selhalo: ' + error.message + (error.details ? ' | ' + error.details : ''))
+      }
       if (data) setBoxes(prev => prev.map(b => b.position === box.position ? data : b))
     } else {
       const { data, error } = await supabase.from('garaz_boxes').insert(payload).select().single()
-      if (error) throw new Error('Uložení selhalo: ' + error.message)
+      if (error) {
+        console.error('[garaz] insert error:', error)
+        throw new Error('Uložení selhalo: ' + error.message + (error.details ? ' | ' + error.details : ''))
+      }
       if (data) setBoxes(prev => prev.map(b => b.position === box.position ? data : b))
     }
     setEditingBox(null)
