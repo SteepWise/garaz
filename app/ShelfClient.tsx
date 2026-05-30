@@ -34,7 +34,9 @@ export default function ShelfClient({ userId, initialBoxes, cols: initCols, rows
       image_url = publicUrl
     }
 
-    const payload = { ...box, image_url, user_id: userId }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id, created_at, updated_at, ...rest } = box
+    const payload = { ...rest, image_url, user_id: userId }
 
     if (box.id) {
       const { data, error } = await supabase.from('garaz_boxes').update(payload).eq('id', box.id).select().single()
