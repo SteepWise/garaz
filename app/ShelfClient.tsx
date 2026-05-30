@@ -247,7 +247,6 @@ export default function ShelfClient({ userId, initialBoxes, cols: initCols, rows
         <BoxModal box={editingBox} userId={userId} onSave={handleSave} onClose={() => setEditingBox(null)} />
       )}
       {showSettings && (
-        // @ts-ignore — onLogout will be added to SettingsModal in Task 7
         <SettingsModal cols={cols} rows={rows} onSave={handleGridChange} onClose={() => setShowSettings(false)} onLogout={handleLogout} />
       )}
       {showScanner && <QrScannerModal onClose={() => setShowScanner(false)} />}

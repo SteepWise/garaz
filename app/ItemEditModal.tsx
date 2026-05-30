@@ -60,13 +60,32 @@ export default function ItemEditModal({ item, itemIndex, boxPosition, userId, on
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4" onClick={onClose}>
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm" onClick={e => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 flex items-center justify-center z-[60] p-4"
+      style={{ background: 'rgba(0,0,0,0.85)' }}
+      onClick={onClose}
+    >
+      <div
+        className="rounded-xl w-full max-w-sm"
+        style={{ background: 'var(--bg-elevated)', border: '1px solid #444', boxShadow: '0 8px 40px rgba(0,0,0,0.6)' }}
+        onClick={e => e.stopPropagation()}
+      >
         <div className="p-5">
-          <h3 className="text-base font-bold text-gray-800 mb-4">Upravit položku</h3>
+          <h3
+            className="font-bold mb-4"
+            style={{ color: '#ff6b35', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 17, letterSpacing: 1, textTransform: 'uppercase' }}
+          >
+            Upravit položku
+          </h3>
 
           <div className="mb-4">
-            <label htmlFor="item-text" className="block text-sm font-semibold text-gray-700 mb-1">Text</label>
+            <label
+              htmlFor="item-text"
+              className="block text-sm font-semibold mb-1"
+              style={{ color: 'var(--text-secondary)' }}
+            >
+              Text
+            </label>
             <input
               id="item-text"
               type="text"
@@ -75,19 +94,28 @@ export default function ItemEditModal({ item, itemIndex, boxPosition, userId, on
               onKeyDown={e => e.key === 'Enter' && handleConfirm()}
               maxLength={120}
               autoFocus
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none"
+              style={{ background: '#1a1a1a', border: '1px solid #444', color: 'var(--text-primary)' }}
             />
           </div>
 
           <div className="mb-5">
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Fotografie</label>
+            <label
+              className="block text-sm font-semibold mb-1"
+              style={{ color: 'var(--text-secondary)' }}
+            >
+              Fotografie
+            </label>
             {imagePreview && !removePhoto ? (
               <div className="mb-2 relative">
-                <img src={imagePreview} alt="náhled" className="w-full h-32 object-cover rounded-lg" />
+                <img src={imagePreview} alt="náhled" className="w-full h-32 object-cover rounded-lg" style={{ border: '1px solid #333' }} />
                 <button
                   onClick={() => { setRemovePhoto(true); setImagePreview(null); setImageFile(null) }}
-                  className="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded"
-                >Odstranit</button>
+                  className="absolute top-1 right-1 text-white text-xs px-2 py-0.5 rounded"
+                  style={{ background: '#8b2020' }}
+                >
+                  Odstranit
+                </button>
               </div>
             ) : null}
             <input
@@ -100,26 +128,35 @@ export default function ItemEditModal({ item, itemIndex, boxPosition, userId, on
             />
             <button
               onClick={() => fileRef.current?.click()}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition"
+              className="px-4 py-2 rounded-lg text-sm transition"
+              style={{ background: '#1e1e1e', border: '1px solid #444', color: 'var(--text-secondary)' }}
             >
               📷 {imagePreview && !removePhoto ? 'Změnit fotku' : 'Přidat fotku'}
             </button>
           </div>
 
           {error && (
-            <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2 mb-3">⚠️ {error}</p>
+            <p className="text-sm rounded-lg px-3 py-2 mb-3" style={{ color: '#ff6b6b', background: '#2a1010', border: '1px solid #8b2020' }}>
+              ⚠️ {error}
+            </p>
           )}
 
           <div className="flex justify-end gap-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition"
-            >Zrušit</button>
+              className="px-4 py-2.5 rounded-lg text-sm font-medium transition"
+              style={{ background: '#1e1e1e', color: 'var(--text-secondary)', border: '1px solid #333' }}
+            >
+              Zrušit
+            </button>
             <button
               onClick={handleConfirm}
               disabled={saving || !text.trim()}
-              className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-semibold transition disabled:opacity-50"
-            >{saving ? 'Nahrávám...' : 'Potvrdit'}</button>
+              className="px-5 py-2.5 rounded-lg text-sm font-semibold transition disabled:opacity-40"
+              style={{ background: '#ff6b35', color: '#111' }}
+            >
+              {saving ? 'Nahrávám...' : 'Potvrdit'}
+            </button>
           </div>
         </div>
       </div>
