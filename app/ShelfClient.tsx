@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { GarazBox, BoxItem, CATEGORY_COLORS, CATEGORIES, BOX_COLORS } from '@/lib/types'
 import BoxModal from './BoxModal'
@@ -23,6 +24,7 @@ export default function ShelfClient({ userId, initialBoxes, cols: initCols, rows
   const [editingBox, setEditingBox] = useState<GarazBox | null>(null)
   const [showSettings, setShowSettings] = useState(false)
   const [showScanner, setShowScanner] = useState(false)
+  const router = useRouter()
   const supabase = createClient()
 
   useEffect(() => {
@@ -128,7 +130,7 @@ export default function ShelfClient({ userId, initialBoxes, cols: initCols, rows
           return (
             <div
               key={box.position}
-              onClick={() => setEditingBox(box)}
+              onClick={() => router.push(`/box/${box.position}`)}
               className="rounded-md cursor-pointer transition-transform hover:scale-[1.02] relative flex flex-col p-2.5 min-h-[140px]"
               style={{ background: catColor || '#fff', border: `3px solid ${borderColor}` }}
             >
