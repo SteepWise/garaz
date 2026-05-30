@@ -38,7 +38,7 @@ export default function BottomNav({ activeCategory, onCategoryChange, onScanClic
   return (
     <nav style={{
       position: 'fixed', bottom: 0, left: 0, right: 0,
-      background: '#0d0d0d', borderTop: '2px solid #ff6b35',
+      background: 'var(--bg-nav)', borderTop: '2px solid #ff6b35',
       zIndex: 50, height: 60,
       display: 'flex', alignItems: 'stretch',
       overflowX: 'auto', overflowY: 'visible',

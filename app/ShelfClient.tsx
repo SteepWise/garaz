@@ -106,7 +106,7 @@ export default function ShelfClient({ userId, initialBoxes, cols: initCols, rows
     <div style={{ minHeight: '100vh', background: 'var(--bg-base)', paddingBottom: 80 }}>
       {/* Header */}
       <div style={{
-        background: '#0d0d0d',
+        background: 'var(--bg-nav)',
         borderBottom: '1px solid #222',
         padding: '14px 16px',
         display: 'flex',
@@ -132,10 +132,10 @@ export default function ShelfClient({ userId, initialBoxes, cols: initCols, rows
           <span style={{
             fontSize: 12,
             color: '#aaa',
-            background: '#1e1e1e',
+            background: 'var(--bg-surface)',
             padding: '4px 10px',
             borderRadius: 12,
-            border: '1px solid #333',
+            border: '1px solid var(--border-subtle)',
             display: 'flex',
             alignItems: 'center',
             gap: 6,
@@ -153,8 +153,8 @@ export default function ShelfClient({ userId, initialBoxes, cols: initCols, rows
       <div style={{ padding: 14, display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 10 }}>
         {filteredBoxes.map(box => {
           const colors = CATEGORY_DARK_COLORS[box.category]
-          const borderColor = colors ? colors.border : '#333'
-          const labelColor = colors ? colors.label : '#666'
+          const borderColor = colors ? colors.border : 'var(--border-subtle)'
+          const labelColor = colors ? colors.label : 'var(--text-muted)'
           const hasItems = (box.items?.length ?? 0) > 0
           const ownedCount = box.items?.filter((it: BoxItem) => !it.checked).length ?? 0
           const totalCount = box.items?.length ?? 0

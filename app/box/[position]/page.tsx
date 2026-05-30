@@ -26,8 +26,8 @@ export default async function BoxPage({ params }: { params: Promise<{ position: 
           <Link href="/" style={{ color: 'var(--text-secondary)', fontSize: 14, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4, marginBottom: 16 }}>
             ← Regál
           </Link>
-          <div style={{ background: 'var(--bg-surface)', borderRadius: 12, border: '1px solid #333', overflow: 'hidden' }}>
-            <div style={{ height: 3, background: '#333' }} />
+          <div style={{ background: 'var(--bg-surface)', borderRadius: 12, border: '1px solid var(--border-subtle)', overflow: 'hidden' }}>
+            <div style={{ height: 3, background: 'var(--border-subtle)' }} />
             <div style={{ padding: 24 }}>
               <h1 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>
                 Bedna {position + 1}
@@ -42,7 +42,7 @@ export default async function BoxPage({ params }: { params: Promise<{ position: 
                 </Link>
                 <Link
                   href="/"
-                  style={{ padding: '12px 16px', background: '#1e1e1e', color: 'var(--text-secondary)', borderRadius: 8, fontSize: 14, textDecoration: 'none', border: '1px solid #333' }}
+                  style={{ padding: '12px 16px', background: 'var(--bg-surface)', color: 'var(--text-secondary)', borderRadius: 8, fontSize: 14, textDecoration: 'none', border: '1px solid var(--border-subtle)' }}
                 >
                   ← Regál
                 </Link>
@@ -55,8 +55,8 @@ export default async function BoxPage({ params }: { params: Promise<{ position: 
   }
 
   const colors = CATEGORY_DARK_COLORS[(box as GarazBox).category]
-  const borderColor = colors ? colors.border : '#333'
-  const labelColor = colors ? colors.label : '#666'
+  const borderColor = colors ? colors.border : 'var(--border-subtle)'
+  const labelColor = colors ? colors.label : 'var(--text-muted)'
   const items: BoxItem[] = (box as GarazBox).items ?? []
   const ownedCount = items.filter(i => !i.checked).length
 
@@ -128,7 +128,7 @@ export default async function BoxPage({ params }: { params: Promise<{ position: 
               </Link>
               <Link
                 href="/"
-                style={{ padding: '14px 18px', background: '#1e1e1e', color: 'var(--text-secondary)', borderRadius: 8, fontSize: 14, textDecoration: 'none', border: '1px solid #333' }}
+                style={{ padding: '14px 18px', background: 'var(--bg-surface)', color: 'var(--text-secondary)', borderRadius: 8, fontSize: 14, textDecoration: 'none', border: '1px solid var(--border-subtle)' }}
               >
                 ← Regál
               </Link>
