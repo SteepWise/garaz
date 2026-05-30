@@ -150,7 +150,7 @@ export default function ShelfClient({ userId, initialBoxes, cols: initCols, rows
       </div>
 
       {/* Grid beden */}
-      <div style={{ padding: 14, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+      <div style={{ padding: 14, display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 10 }}>
         {filteredBoxes.map(box => {
           const colors = CATEGORY_DARK_COLORS[box.category]
           const borderColor = colors ? colors.border : '#333'
