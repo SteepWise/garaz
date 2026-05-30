@@ -155,6 +155,7 @@ export default function ShelfClient({ userId, initialBoxes, cols: initCols, rows
       {editingBox && (
         <BoxModal
           box={editingBox}
+          userId={userId}
           onSave={handleSave}
           onClose={() => setEditingBox(null)}
         />

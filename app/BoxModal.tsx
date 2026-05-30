@@ -3,14 +3,16 @@
 import { useState, useRef } from 'react'
 import { GarazBox, BoxItem, CATEGORIES, BOX_COLORS } from '@/lib/types'
 import { compressImage } from '@/lib/compressImage'
+import ItemEditModal from './ItemEditModal'
 
 type Props = {
   box: GarazBox
+  userId: string
   onSave: (box: GarazBox, imageFile: File | null) => Promise<void>
   onClose: () => void
 }
 
-export default function BoxModal({ box, onSave, onClose }: Props) {
+export default function BoxModal({ box, userId, onSave, onClose }: Props) {
   const [title, setTitle] = useState(box.title)
   const [category, setCategory] = useState(box.category)
   const [color, setColor] = useState(box.color)
@@ -20,6 +22,8 @@ export default function BoxModal({ box, onSave, onClose }: Props) {
   const [imagePreview, setImagePreview] = useState<string | null>(box.image_url)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [editingItemIdx, setEditingItemIdx] = useState<number | null>(null)
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
   function addItem() {
@@ -39,6 +43,11 @@ export default function BoxModal({ box, onSave, onClose }: Props) {
 
   function removeItem(idx: number) {
     setItems(prev => prev.filter((_, i) => i !== idx))
+  }
+
+  function handleItemConfirm(idx: number, updated: BoxItem) {
+    setItems(prev => prev.map((it, i) => i === idx ? updated : it))
+    setEditingItemIdx(null)
   }
 
   async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -95,15 +104,30 @@ export default function BoxModal({ box, onSave, onClose }: Props) {
             <div className="border border-gray-200 rounded-lg max-h-48 overflow-y-auto p-2 mb-2 space-y-1 bg-gray-50">
               {items.length === 0 && <p className="text-xs text-gray-400 py-1">Zatím žádné položky.</p>}
               {items.map((item, idx) => (
-                <div key={idx} className={`flex items-center gap-2 rounded px-1 py-0.5 hover:bg-gray-100 ${item.checked ? 'opacity-60' : ''}`}>
-                  <input type="checkbox" checked={item.checked} onChange={() => toggleItem(idx)}
-                    className="w-4 h-4 flex-shrink-0 accent-green-600 cursor-pointer" />
+                <div
+                  key={idx}
+                  className={`flex items-center gap-2 rounded px-1 py-0.5 hover:bg-gray-100 ${item.checked ? 'opacity-60' : ''}`}
+                >
                   <input
-                    type="text" value={item.text}
-                    onChange={e => updateItemText(idx, e.target.value)}
-                    className={`flex-1 text-sm bg-transparent border-none outline-none ${item.checked ? 'line-through text-gray-400' : 'text-gray-800'}`}
+                    type="checkbox"
+                    checked={item.checked}
+                    onChange={() => toggleItem(idx)}
+                    className="w-4 h-4 flex-shrink-0 accent-green-600 cursor-pointer"
                   />
-                  <button onClick={() => removeItem(idx)} className="text-gray-300 hover:text-red-500 text-xs px-1">✕</button>
+                  <span
+                    onClick={() => setEditingItemIdx(idx)}
+                    className={`flex-1 text-sm cursor-pointer select-none ${item.checked ? 'line-through text-gray-400' : 'text-gray-800'}`}
+                  >
+                    {item.text}
+                  </span>
+                  {item.image_url && (
+                    <button
+                      onClick={e => { e.stopPropagation(); setLightboxUrl(item.image_url!) }}
+                      className="text-base leading-none opacity-60 hover:opacity-100 transition flex-shrink-0"
+                      title="Zobrazit fotku"
+                    >📷</button>
+                  )}
+                  <button onClick={() => removeItem(idx)} className="text-gray-300 hover:text-red-500 text-xs px-1 flex-shrink-0">✕</button>
                 </div>
               ))}
             </div>
@@ -169,6 +193,33 @@ export default function BoxModal({ box, onSave, onClose }: Props) {
           </div>
         </div>
       </div>
+
+        {editingItemIdx !== null && (
+          <ItemEditModal
+            item={items[editingItemIdx]}
+            itemIndex={editingItemIdx}
+            boxPosition={box.position}
+            userId={userId}
+            onConfirm={updated => handleItemConfirm(editingItemIdx, updated)}
+            onClose={() => setEditingItemIdx(null)}
+          />
+        )}
+
+        {lightboxUrl && (
+          <div
+            className="fixed inset-0 bg-black/90 flex items-center justify-center z-[70]"
+            onClick={() => setLightboxUrl(null)}
+          >
+            <div className="overflow-auto max-w-full max-h-full p-4" style={{ touchAction: 'pinch-zoom' }}>
+              <img
+                src={lightboxUrl}
+                alt="fotka položky"
+                className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg"
+                onClick={e => e.stopPropagation()}
+              />
+            </div>
+          </div>
+        )}
     </div>
   )
 }
